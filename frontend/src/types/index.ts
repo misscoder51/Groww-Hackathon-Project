@@ -31,3 +31,34 @@ export interface AttentionInboxResponse {
   };
   message?: string;
 }
+
+export interface StockDetailResponse {
+  ticker: string;
+  company: string;
+  current_price: number;
+  baseline_price: number;
+  raw_delta: number;
+  sector_delta: number;
+  beta: number;
+  alpha: number;
+  volume_ratio: number;
+  attention_score: number;
+  classification: string;
+  corporate_action: boolean;
+  catalyst?: MarketEvent;
+  stale: boolean;
+  error?: string;
+}
+
+export interface MarketStory {
+  title: string;
+  description: string;
+  type: string;
+  affected: string[];
+}
+
+export interface MarketStoriesResponse {
+  stories: MarketStory[];
+  stale: boolean;
+}
+

@@ -1,6 +1,6 @@
 from app.services.attention_engine import AttentionEngine
 from app.schemas.domain import CorporateAction, MarketEvent
-from datetime import datetime
+from datetime import datetime, timezone
 
 def test_alpha_calculation():
     engine = AttentionEngine()
@@ -21,7 +21,7 @@ def test_attention_scoring():
     assert res.classification == "unchanged"
     
     # 2. Corporate action false alarm
-    ca = CorporateAction(ticker="TEST", action_type="Dividend", effective_date=datetime.utcnow(), description="Test")
+    ca = CorporateAction(ticker="TEST", action_type="Dividend", effective_date=datetime.now(timezone.utc), description="Test")
     res = engine.calculate_attention(
         "TEST", current_price=90, baseline_price=100, 
         sector_current=100, sector_baseline=100, beta=1.0,
@@ -32,7 +32,7 @@ def test_attention_scoring():
 
 def test_major_change():
     engine = AttentionEngine()
-    event = MarketEvent(event_type="News", timestamp=datetime.utcnow(), title="Test", description="Test", source="Test", confidence="High")
+    event = MarketEvent(event_type="News", timestamp=datetime.now(timezone.utc), title="Test", description="Test", source="Test", confidence="High")
     res = engine.calculate_attention(
         "TEST", current_price=110, baseline_price=100, # 10% move
         sector_current=100, sector_baseline=100, beta=1.0, # sector 0%
