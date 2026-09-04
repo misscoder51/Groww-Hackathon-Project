@@ -68,92 +68,94 @@ export const StockDetailDrawer = ({ ticker, onClose }: { ticker: string | null, 
               </button>
 
               {loading ? (
-                <div className="animate-pulse space-y-8">
-                  <div className="h-8 bg-neutral-800 rounded w-1/3" />
-                  <div className="h-32 bg-neutral-800 rounded" />
+                <div className="animate-pulse space-y-6">
+                  <div className="h-6 bg-neutral-800 rounded w-1/3" />
+                  <div className="h-24 bg-neutral-800 rounded" />
                 </div>
               ) : detail ? (
-                <div className="space-y-10">
+                <div className="space-y-8">
                   
                   {/* Header */}
                   <div>
-                    <h2 className="text-3xl font-bold">{detail.ticker}</h2>
-                    <p className="text-neutral-400">{detail.company}</p>
+                    <h2 className="text-2xl font-bold tracking-tight text-white">{detail.ticker}</h2>
+                    <p className="text-neutral-400 text-sm">{detail.company}</p>
                     
-                    <div className="mt-6 flex items-baseline gap-4">
-                      <span className="text-4xl font-light">₹{detail.current_price.toFixed(2)}</span>
-                      <span className={`text-xl font-medium ${detail.raw_delta >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                    <div className="mt-4 flex items-baseline gap-3">
+                      <span className="text-3xl font-semibold tracking-tight text-white">₹{detail.current_price.toFixed(2)}</span>
+                      <span className={`text-lg font-medium ${detail.raw_delta >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                         {detail.raw_delta >= 0 ? '+' : ''}{formatPercent(detail.raw_delta)}
                       </span>
                     </div>
                   </div>
 
-                  {/* Chart */}
-                  <div className="h-48 w-full border border-neutral-800 rounded-xl p-4 bg-black">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={chartData}>
-                        <defs>
-                          <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor={detail.raw_delta >= 0 ? "#10b981" : "#ef4444"} stopOpacity={0.3}/>
-                            <stop offset="95%" stopColor={detail.raw_delta >= 0 ? "#10b981" : "#ef4444"} stopOpacity={0}/>
-                          </linearGradient>
-                        </defs>
-                        <Tooltip contentStyle={{ backgroundColor: '#171717', borderColor: '#262626' }} />
-                        <ReferenceLine y={detail.baseline_price} stroke="#525252" strokeDasharray="3 3" label={{ position: 'insideTopLeft', value: 'Baseline', fill: '#737373', fontSize: 12 }} />
-                        <Area type="monotone" dataKey="price" stroke={detail.raw_delta >= 0 ? "#10b981" : "#ef4444"} fillOpacity={1} fill="url(#colorPrice)" />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </div>
-
                   {/* SO WHAT */}
-                  <div className="bg-neutral-900/50 p-6 rounded-2xl border border-neutral-800">
-                    <h3 className="text-sm font-semibold text-neutral-400 uppercase tracking-wider mb-2">Contextual Interpretation</h3>
-                    <p className="text-neutral-200 leading-relaxed">
+                  <div className="bg-neutral-900 border border-neutral-800 p-5 rounded-xl">
+                    <h3 className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2">Why you're seeing this</h3>
+                    <p className="text-neutral-300 text-sm leading-relaxed">
                       {getSoWhat(detail)}
                     </p>
                   </div>
 
+                  {/* Chart */}
+                  <div className="h-40 w-full border border-neutral-800 rounded-xl p-3 bg-black">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={chartData} margin={{ top: 5, right: 0, left: 0, bottom: 0 }}>
+                        <defs>
+                          <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor={detail.raw_delta >= 0 ? "#10b981" : "#ef4444"} stopOpacity={0.2}/>
+                            <stop offset="95%" stopColor={detail.raw_delta >= 0 ? "#10b981" : "#ef4444"} stopOpacity={0}/>
+                          </linearGradient>
+                        </defs>
+                        <Tooltip 
+                          contentStyle={{ backgroundColor: '#0a0a0a', borderColor: '#262626', fontSize: '12px' }}
+                          itemStyle={{ color: '#fff' }}
+                        />
+                        <ReferenceLine y={detail.baseline_price} stroke="#404040" strokeDasharray="3 3" />
+                        <Area type="monotone" dataKey="price" stroke={detail.raw_delta >= 0 ? "#10b981" : "#ef4444"} strokeWidth={2} fillOpacity={1} fill="url(#colorPrice)" />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+
                   {/* ATTENTION TRACE */}
                   <div>
-                    <h3 className="text-sm font-semibold text-neutral-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-                      <Activity className="w-4 h-4" /> Attention Trace
-                    </h3>
-                    <div className="space-y-3 font-mono text-sm bg-black border border-neutral-800 rounded-xl p-5">
-                      <div className="flex justify-between">
-                        <span className="text-neutral-500">Price move</span>
-                        <span className={detail.raw_delta >= 0 ? 'text-emerald-400' : 'text-red-400'}>{formatPercent(detail.raw_delta)}</span>
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-xs font-semibold text-neutral-500 uppercase tracking-wider flex items-center gap-1.5">
+                        <Activity className="w-3.5 h-3.5" /> Attention Trace
+                      </h3>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-neutral-500">SCORE</span>
+                        <span className="text-lg font-bold text-white">{detail.attention_score}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-neutral-500">Sector move</span>
-                        <span>{formatPercent(detail.sector_delta)}</span>
+                    </div>
+                    
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between py-1.5 border-b border-neutral-800/50">
+                        <span className="text-neutral-400">Price move</span>
+                        <span className={`font-medium ${detail.raw_delta >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{formatPercent(detail.raw_delta)}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-neutral-500">Beta</span>
-                        <span>{detail.beta.toFixed(2)}</span>
+                      <div className="flex justify-between py-1.5 border-b border-neutral-800/50">
+                        <span className="text-neutral-400">Sector move</span>
+                        <span className="text-neutral-200">{formatPercent(detail.sector_delta)}</span>
                       </div>
-                      <div className="flex justify-between border-t border-neutral-800 pt-3">
+                      <div className="flex justify-between py-1.5 border-b border-neutral-800/50">
+                        <span className="text-neutral-400">Beta</span>
+                        <span className="text-neutral-200">{detail.beta.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between py-1.5 border-b border-neutral-800/50">
                         <span className="text-neutral-400">Noise-adjusted alpha</span>
-                        <span className={detail.alpha >= 0 ? 'text-emerald-400' : 'text-red-400'}>{formatPercent(detail.alpha)}</span>
+                        <span className={`font-medium ${detail.alpha >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{formatPercent(detail.alpha)}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-neutral-500">Volume</span>
-                        <span className={detail.volume_ratio > 1.5 ? 'text-orange-400' : ''}>{detail.volume_ratio.toFixed(1)}x normal</span>
+                      <div className="flex justify-between py-1.5 border-b border-neutral-800/50">
+                        <span className="text-neutral-400">Volume</span>
+                        <span className={detail.volume_ratio > 1.5 ? 'text-orange-400 font-medium' : 'text-neutral-200'}>{detail.volume_ratio.toFixed(1)}x normal</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-neutral-500">Corporate action</span>
-                        <span>{detail.corporate_action ? 'Active' : 'None'}</span>
+                      <div className="flex justify-between py-1.5 border-b border-neutral-800/50">
+                        <span className="text-neutral-400">Corporate action</span>
+                        <span className="text-neutral-200">{detail.corporate_action ? 'Active' : 'None'}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-neutral-500">Catalyst</span>
-                        <span>{detail.catalyst ? 'Found' : 'None'}</span>
-                      </div>
-                      
-                      <div className="mt-6 pt-4 border-t border-neutral-800 flex justify-between items-center">
-                        <span className="font-sans font-bold text-neutral-300">ATTENTION SCORE</span>
-                        <div className="flex items-center gap-3">
-                          <span className="text-2xl font-bold">{detail.attention_score}</span>
-                          <span className="text-neutral-600">/ 100</span>
-                        </div>
+                      <div className="flex justify-between py-1.5">
+                        <span className="text-neutral-400">Catalyst</span>
+                        <span className="text-neutral-200">{detail.catalyst ? 'Found' : 'None'}</span>
                       </div>
                     </div>
                   </div>

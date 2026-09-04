@@ -10,24 +10,26 @@ export const AttentionCard = ({ item, onClick }: { item: AttentionScoreResult, o
   return (
     <button 
       onClick={onClick}
-      className={`w-full text-left p-5 sm:p-6 rounded-2xl border transition-all duration-300 group
+      className={`w-full text-left p-4 sm:p-5 rounded-xl border transition-all duration-200 group flex flex-col sm:flex-row sm:items-center gap-4
         ${isMajor 
-          ? 'bg-neutral-900 border-red-500/30 hover:border-red-500/50' 
-          : 'bg-neutral-900/50 border-orange-500/20 hover:border-orange-500/40'}`}
+          ? 'bg-neutral-900 border-red-500/20 hover:border-red-500/40 hover:bg-neutral-800' 
+          : 'bg-neutral-950 border-neutral-800 hover:border-neutral-600 hover:bg-neutral-900'}`}
     >
-      <div className="flex justify-between items-start mb-4">
+      <div className="flex-shrink-0 flex items-center justify-between sm:w-48">
         <div className="flex items-center gap-3">
-          <div className={`w-2.5 h-2.5 rounded-full shadow-lg ${isMajor ? 'bg-red-500 shadow-red-500/50' : 'bg-orange-500 shadow-orange-500/50'}`} />
-          <h3 className="text-xl sm:text-2xl font-semibold tracking-tight">{item.ticker}</h3>
-          {isMajor && <span className="px-2 py-0.5 text-[10px] uppercase font-bold tracking-wider bg-red-500/10 text-red-400 rounded-sm">Major</span>}
+          <div className={`w-2 h-2 rounded-full ${isMajor ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : 'bg-orange-500'}`} />
+          <div>
+            <h3 className="text-lg font-bold tracking-tight text-white">{item.ticker}</h3>
+            {isMajor && <span className="text-[10px] uppercase font-bold tracking-wider text-red-400">Major</span>}
+          </div>
         </div>
-        <div className={`text-xl sm:text-2xl font-medium flex items-center gap-2 ${isPositive ? 'text-emerald-400' : 'text-red-400'}`}>
-          {isPositive ? <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6" /> : <TrendingDown className="w-5 h-5 sm:w-6 sm:h-6" />}
+        <div className={`text-lg font-semibold flex items-center gap-1 ${isPositive ? 'text-emerald-400' : 'text-red-400'}`}>
+          {isPositive ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
           {isPositive ? "+" : ""}{formatPercent(item.delta_stock)}
         </div>
       </div>
 
-      <div className="space-y-2 text-sm sm:text-base text-neutral-400 pl-5 sm:pl-6 border-l-2 border-neutral-800">
+      <div className="flex-1 space-y-1 text-sm sm:pl-6 sm:border-l border-neutral-800">
         {item.catalyst ? (
           <p className="text-neutral-200">{item.catalyst.title}</p>
         ) : item.volume_ratio > 2 ? (
@@ -36,7 +38,7 @@ export const AttentionCard = ({ item, onClick }: { item: AttentionScoreResult, o
             Unusual volume spike ({item.volume_ratio.toFixed(1)}x normal)
           </p>
         ) : (
-          <p className="text-neutral-300 flex items-center gap-2">
+          <p className="text-neutral-400 flex items-center gap-2">
             <Info className="w-4 h-4" />
             {item.delta_sector < -0.01 && item.delta_stock < 0 ? "Broad sector weakness" : "Unusual relative movement"}
           </p>

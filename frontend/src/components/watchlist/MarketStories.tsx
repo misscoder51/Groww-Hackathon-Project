@@ -1,21 +1,24 @@
 import { MarketStory } from "@/types";
-import { Zap } from "lucide-react";
+import { BarChart2 } from "lucide-react";
 
 export const MarketStories = ({ stories }: { stories: MarketStory[] }) => {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div className="space-y-4">
       {stories.map((story, i) => (
-        <div key={i} className="p-6 bg-neutral-900 border border-neutral-800 rounded-2xl">
-          <div className="flex items-center gap-2 mb-3">
-            <Zap className="w-4 h-4 text-emerald-500" />
-            <h3 className="text-sm font-bold tracking-wider text-emerald-500 uppercase">{story.title}</h3>
+        <div key={i} className="border border-neutral-800 rounded-xl p-5 bg-neutral-950 flex flex-col sm:flex-row gap-6">
+          <div className="sm:w-1/3">
+            <div className="flex items-center gap-2 mb-2">
+              <BarChart2 className="w-4 h-4 text-emerald-400" />
+              <h3 className="font-semibold text-sm tracking-widest uppercase text-neutral-300">{story.title}</h3>
+            </div>
+            <p className="text-sm text-neutral-400 leading-relaxed">{story.description}</p>
           </div>
-          <p className="text-neutral-300 text-sm leading-relaxed mb-4">{story.description}</p>
-          <div className="flex flex-wrap gap-2">
+          <div className="sm:w-2/3 grid grid-cols-2 gap-2 sm:border-l sm:border-neutral-800 sm:pl-6">
             {story.affected.map(ticker => (
-              <span key={ticker} className="px-2 py-1 bg-black border border-neutral-700 rounded text-xs text-neutral-400 font-medium">
-                {ticker}
-              </span>
+              <div key={ticker} className="px-3 py-2 bg-neutral-900 rounded-lg text-sm flex items-center justify-between border border-neutral-800/50">
+                <span className="font-medium">{ticker}</span>
+                <span className="text-neutral-500 text-xs">Included</span>
+              </div>
             ))}
           </div>
         </div>

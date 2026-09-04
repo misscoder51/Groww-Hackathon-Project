@@ -10,6 +10,7 @@ import { StockDetailDrawer } from "@/components/watchlist/StockDetailDrawer";
 import { MarketStories } from "@/components/watchlist/MarketStories";
 import { WatchlistManager } from "@/components/watchlist/WatchlistManager";
 import { DemoControls } from "@/components/watchlist/DemoControls";
+import { Sidebar } from "@/components/layout/Sidebar";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function Home() {
@@ -91,65 +92,84 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-black text-white selection:bg-neutral-800 pb-24">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-black/80 backdrop-blur-md border-b border-neutral-900 px-6 py-4 flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-emerald-500 to-cyan-500 flex items-center justify-center font-bold text-black">
-            C
-          </div>
-          <span className="font-semibold text-lg tracking-tight">Context</span>
-        </div>
-        <div className="flex items-center gap-4">
-          <button 
-            onClick={() => setShowWatchlistManager(true)}
-            className="px-4 py-2 bg-neutral-900 hover:bg-neutral-800 rounded-full text-sm font-medium transition-colors border border-neutral-800"
-          >
-            Manage Watchlist
-          </button>
-          <button onClick={() => setShowDemoControls(!showDemoControls)} className="p-2 text-neutral-400 hover:text-white transition-colors" aria-label="Demo controls">
-            <Settings className="w-5 h-5" />
-          </button>
-        </div>
-      </header>
+      {/* 3-Part Layout: Sidebar + Main Workspace + Drawer */}
+      <div className="flex h-screen overflow-hidden">
+        {/* Sidebar */}
+        <Sidebar 
+          results={inbox?.results || []} 
+          selectedTicker={selectedTicker} 
+          onSelect={setSelectedTicker} 
+          onManage={() => setShowWatchlistManager(true)} 
+        />
 
-      {showDemoControls && <DemoControls onClose={() => setShowDemoControls(false)} onReload={loadData} />}
-
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-12 space-y-12">
-        
-        {/* Stale Warning */}
-        <AnimatePresence>
-          {inbox?.is_stale && (
-            <motion.div 
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-orange-500/10 border border-orange-500/20 p-4 rounded-xl text-orange-400 flex items-start gap-3"
-            >
-              <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
-              <div>
-                <p className="font-medium">Market data may be stale.</p>
-                <p className="text-sm opacity-80 mt-1">{inbox.message}</p>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Hero Area */}
-        <section>
-          <DitherWave className="rounded-3xl p-8 sm:p-12 border border-neutral-800 shadow-2xl">
-            <div className="max-w-xl">
-              <h1 className="text-4xl sm:text-5xl font-light tracking-tight mb-4">
-                YOUR MARKET INBOX
-              </h1>
-              
-              <div className="text-neutral-400 font-medium flex flex-wrap items-center gap-3">
-                <span>Since you last checked</span>
-                <span className="px-3 py-1 bg-neutral-900 rounded-full text-sm border border-neutral-700">
-                  {session?.last_viewed_at ? new Date(session.last_viewed_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '...'}
-                </span>
-              </div>
+        {/* Main Workspace */}
+        <main className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto relative">
+          {/* Header */}
+          <header className="sticky top-0 z-30 bg-neutral-950/80 backdrop-blur-md border-b border-neutral-800 px-6 py-4 flex justify-between items-center">
+            <div className="md:hidden flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center font-bold text-black text-sm">C</div>
+              <span className="font-semibold tracking-tight">Context</span>
             </div>
-          </DitherWave>
-        </section>
+            
+            <div className="ml-auto flex items-center gap-4">
+              <button 
+                onClick={() => setShowWatchlistManager(true)}
+                className="md:hidden px-4 py-2 bg-neutral-900 hover:bg-neutral-800 rounded-full text-sm font-medium transition-colors border border-neutral-800"
+              >
+                Watchlist
+              </button>
+              
+              <button 
+                onClick={() => setShowDemoControls(!showDemoControls)} 
+                className={`text-xs px-3 py-1.5 rounded-full border transition-colors flex items-center gap-2 ${showDemoControls ? 'bg-orange-500/10 border-orange-500/50 text-orange-400' : 'border-neutral-800 text-neutral-500 hover:text-white'}`}
+              >
+                {showDemoControls && <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse" />}
+                DEMO MODE
+              </button>
+            </div>
+          </header>
+
+          {showDemoControls && (
+            <div className="absolute top-16 right-6 z-40">
+              <DemoControls onClose={() => setShowDemoControls(false)} onReload={loadData} />
+            </div>
+          )}
+
+          <div className="max-w-4xl mx-auto w-full px-4 sm:px-8 py-8 space-y-10">
+            {/* Summary Header */}
+            <section className="flex flex-col sm:flex-row sm:items-end justify-between border-b border-neutral-800 pb-6 gap-4">
+              <div>
+                <p className="text-neutral-500 font-medium mb-1">Since your last check</p>
+                <div className="flex items-center gap-3">
+                  <h1 className="text-3xl font-semibold tracking-tight">
+                    {inbox?.summary.major_changes! + inbox?.summary.moderate_changes!} updates
+                  </h1>
+                  <span className="px-3 py-1 bg-neutral-900 rounded-md text-sm text-neutral-400 font-mono">
+                    {session?.last_viewed_at ? new Date(session.last_viewed_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '...'}
+                  </span>
+                </div>
+              </div>
+              <button onClick={loadData} className="text-neutral-500 hover:text-white transition-colors p-2" aria-label="Refresh">
+                <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+              </button>
+            </section>
+
+            {/* Stale Warning */}
+            <AnimatePresence>
+              {inbox?.is_stale && (
+                <motion.div 
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-orange-500/10 border border-orange-500/20 p-4 rounded-xl text-orange-400 flex items-start gap-3"
+                >
+                  <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-medium">Market data may be stale.</p>
+                    <p className="text-sm opacity-80 mt-1">{inbox.message}</p>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
         {/* Watchlist empty state */}
         {session?.watchlist_tickers.length === 0 ? (
@@ -220,17 +240,19 @@ export default function Home() {
             )}
 
             {/* Acknowledge Button */}
-            <section className="pt-16 flex justify-center">
+            <section className="pt-10 pb-20 flex justify-center">
               <button 
                 onClick={handleAcknowledge}
-                className="group flex items-center gap-3 px-8 py-4 bg-neutral-900 hover:bg-white hover:text-black border border-neutral-700 rounded-full transition-all duration-300 font-medium"
+                className="group flex items-center gap-3 px-8 py-4 bg-white hover:bg-neutral-200 text-black rounded-full transition-all duration-300 font-semibold"
               >
-                <CheckCircle2 className="w-5 h-5 group-hover:text-emerald-500 transition-colors" />
+                <CheckCircle2 className="w-5 h-5 group-hover:text-emerald-600 transition-colors" />
                 Mark as reviewed
               </button>
             </section>
           </>
         )}
+          </div>
+        </main>
       </div>
 
       <StockDetailDrawer 
