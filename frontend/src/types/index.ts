@@ -32,6 +32,12 @@ export interface AttentionInboxResponse {
   message?: string;
 }
 
+export interface UserSession {
+  user_id: string;
+  last_viewed_at: string;
+  watchlist_tickers: string[];
+}
+
 export interface StockDetailResponse {
   ticker: string;
   company: string;

@@ -125,6 +125,18 @@ def acknowledge_session():
     session_store.update_last_viewed(DEFAULT_USER, current_time)
     return {"status": "success", "last_viewed_at": current_time}
 
+class WatchlistRequest(BaseModel):
+    tickers: List[str]
+
+@router.post("/session/watchlist")
+def update_watchlist(request: WatchlistRequest):
+    session = session_store.get_session(DEFAULT_USER)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    session.watchlist_tickers = request.tickers
+    session_store.create_or_update_session(session)
+    return {"status": "success", "watchlist_tickers": session.watchlist_tickers}
+
 @router.get("/stocks/{ticker}")
 def get_stock(ticker: str):
     session = session_store.get_session(DEFAULT_USER)
