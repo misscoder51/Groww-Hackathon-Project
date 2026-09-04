@@ -37,15 +37,15 @@ export const StockDetailDrawer = ({ ticker, onClose }: { ticker: string | null, 
 
   const getSoWhat = (d: StockDetailResponse) => {
     if (d.catalyst) {
-      return `${d.company} is moving on news: "${d.catalyst.title}". The Attention Engine flagged this due to a significant alpha of ${formatPercent(d.alpha)} against its sector.`;
+      return `${d.company} is moving on news: "${d.catalyst.title}". The system flagged this because it is moving significantly more than other stocks in its sector.`;
     }
     if (d.volume_ratio > 2) {
-      return `${d.company} is moving sharply with unusually high volume (${d.volume_ratio.toFixed(1)}x normal), but no confirmed catalyst has been identified.`;
+      return `${d.company} is experiencing unusually high trading activity (${d.volume_ratio.toFixed(1)}x normal), but we have not identified a specific news event causing it.`;
     }
     if (Math.abs(d.alpha) > 0.02) {
-      return `${d.company} is moving significantly more than the sector average, indicating that this move is stock-specific and not fully explained by broader market trends.`;
+      return `${d.company} is ${d.raw_delta < 0 ? 'falling' : 'rising'} significantly more than its sector average. This indicates the movement is specific to this company rather than a general market trend.`;
     }
-    return `This movement is primarily in line with the sector's performance (Beta: ${d.beta}).`;
+    return `Most of this movement is explained by broader trends in the sector.`;
   };
 
   return (
@@ -88,39 +88,57 @@ export const StockDetailDrawer = ({ ticker, onClose }: { ticker: string | null, 
                     </div>
                   </div>
 
-                  {/* SO WHAT */}
-                  <div className="bg-neutral-900 border border-neutral-800 p-5 rounded-xl">
-                    <h3 className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2">Why you're seeing this</h3>
-                    <p className="text-neutral-300 text-sm leading-relaxed">
+                  {/* WHY YOU'RE SEEING THIS */}
+                  <div className="bg-neutral-900 border border-neutral-800 p-6 rounded-xl">
+                    <h3 className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-3">Why you're seeing this</h3>
+                    <p className="text-neutral-200 text-base leading-relaxed">
                       {getSoWhat(detail)}
                     </p>
                   </div>
 
-                  {/* Chart */}
-                  <div className="h-40 w-full border border-neutral-800 rounded-xl p-3 bg-black">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={chartData} margin={{ top: 5, right: 0, left: 0, bottom: 0 }}>
-                        <defs>
-                          <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor={detail.raw_delta >= 0 ? "#10b981" : "#ef4444"} stopOpacity={0.2}/>
-                            <stop offset="95%" stopColor={detail.raw_delta >= 0 ? "#10b981" : "#ef4444"} stopOpacity={0}/>
-                          </linearGradient>
-                        </defs>
-                        <Tooltip 
-                          contentStyle={{ backgroundColor: '#0a0a0a', borderColor: '#262626', fontSize: '12px' }}
-                          itemStyle={{ color: '#fff' }}
-                        />
-                        <ReferenceLine y={detail.baseline_price} stroke="#404040" strokeDasharray="3 3" />
-                        <Area type="monotone" dataKey="price" stroke={detail.raw_delta >= 0 ? "#10b981" : "#ef4444"} strokeWidth={2} fillOpacity={1} fill="url(#colorPrice)" />
-                      </AreaChart>
-                    </ResponsiveContainer>
+                  {/* WHAT THE ENGINE SEES */}
+                  <div>
+                    <h3 className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-4 flex items-center gap-1.5">
+                      <Activity className="w-3.5 h-3.5" /> What the engine sees
+                    </h3>
+                    <div className="space-y-3">
+                      <div className="flex items-start gap-3 bg-neutral-950 border border-neutral-800/50 p-4 rounded-lg">
+                        <div className="mt-0.5"><div className={`w-2 h-2 rounded-full ${Math.abs(detail.alpha) > 0.02 ? 'bg-orange-500' : 'bg-neutral-600'}`} /></div>
+                        <div>
+                          <p className="text-sm font-medium text-white">{Math.abs(detail.alpha) > 0.02 ? "Moving independently from its sector" : "Moving in line with its sector"}</p>
+                          <p className="text-xs text-neutral-400 mt-1">
+                            {Math.abs(detail.alpha) > 0.02 ? "The stock is showing price action that cannot be fully explained by broader market trends." : "Most of this movement is explained by broader trends."}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-start gap-3 bg-neutral-950 border border-neutral-800/50 p-4 rounded-lg">
+                        <div className="mt-0.5"><div className={`w-2 h-2 rounded-full ${detail.volume_ratio > 1.5 ? 'bg-orange-500' : 'bg-neutral-600'}`} /></div>
+                        <div>
+                          <p className="text-sm font-medium text-white">{detail.volume_ratio > 1.5 ? "Unusually high trading activity" : "Normal trading volume"}</p>
+                          <p className="text-xs text-neutral-400 mt-1">
+                            {detail.volume_ratio > 1.5 ? `Trading volume is ${detail.volume_ratio.toFixed(1)}x normal levels.` : "Volume is consistent with typical trading days."}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-start gap-3 bg-neutral-950 border border-neutral-800/50 p-4 rounded-lg">
+                        <div className="mt-0.5"><div className={`w-2 h-2 rounded-full ${detail.catalyst || detail.corporate_action ? 'bg-orange-500' : 'bg-neutral-600'}`} /></div>
+                        <div>
+                          <p className="text-sm font-medium text-white">{detail.catalyst ? "Catalyst identified" : detail.corporate_action ? "Corporate action active" : "No known catalyst"}</p>
+                          <p className="text-xs text-neutral-400 mt-1">
+                            {detail.catalyst ? "We found recent news that helps explain this move." : detail.corporate_action ? "A scheduled corporate event is affecting the price." : "We haven't identified any specific news causing this move."}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
                   {/* ATTENTION TRACE */}
-                  <div>
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="text-xs font-semibold text-neutral-500 uppercase tracking-wider flex items-center gap-1.5">
-                        <Activity className="w-3.5 h-3.5" /> Attention Trace
+                  <div className="border-t border-neutral-900 pt-8">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">
+                        Technical Attention Trace
                       </h3>
                       <div className="flex items-center gap-2">
                         <span className="text-xs text-neutral-500">SCORE</span>
@@ -128,35 +146,55 @@ export const StockDetailDrawer = ({ ticker, onClose }: { ticker: string | null, 
                       </div>
                     </div>
                     
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between py-1.5 border-b border-neutral-800/50">
-                        <span className="text-neutral-400">Price move</span>
+                    <div className="space-y-2 text-sm font-mono opacity-70 hover:opacity-100 transition-opacity">
+                      <div className="flex justify-between py-1 border-b border-neutral-800/50">
+                        <span className="text-neutral-500">Raw price move</span>
                         <span className={`font-medium ${detail.raw_delta >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{formatPercent(detail.raw_delta)}</span>
                       </div>
-                      <div className="flex justify-between py-1.5 border-b border-neutral-800/50">
-                        <span className="text-neutral-400">Sector move</span>
-                        <span className="text-neutral-200">{formatPercent(detail.sector_delta)}</span>
+                      <div className="flex justify-between py-1 border-b border-neutral-800/50">
+                        <span className="text-neutral-500">Sector move</span>
+                        <span className="text-neutral-300">{formatPercent(detail.sector_delta)}</span>
                       </div>
-                      <div className="flex justify-between py-1.5 border-b border-neutral-800/50">
-                        <span className="text-neutral-400">Beta</span>
-                        <span className="text-neutral-200">{detail.beta.toFixed(2)}</span>
+                      <div className="flex justify-between py-1 border-b border-neutral-800/50">
+                        <span className="text-neutral-500">Beta</span>
+                        <span className="text-neutral-300">{detail.beta.toFixed(2)}</span>
                       </div>
-                      <div className="flex justify-between py-1.5 border-b border-neutral-800/50">
-                        <span className="text-neutral-400">Noise-adjusted alpha</span>
+                      <div className="flex justify-between py-1 border-b border-neutral-800/50">
+                        <span className="text-neutral-500">Noise-adjusted alpha</span>
                         <span className={`font-medium ${detail.alpha >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{formatPercent(detail.alpha)}</span>
                       </div>
-                      <div className="flex justify-between py-1.5 border-b border-neutral-800/50">
-                        <span className="text-neutral-400">Volume</span>
-                        <span className={detail.volume_ratio > 1.5 ? 'text-orange-400 font-medium' : 'text-neutral-200'}>{detail.volume_ratio.toFixed(1)}x normal</span>
+                      <div className="flex justify-between py-1 border-b border-neutral-800/50">
+                        <span className="text-neutral-500">Volume ratio</span>
+                        <span className="text-neutral-300">{detail.volume_ratio.toFixed(2)}x</span>
                       </div>
-                      <div className="flex justify-between py-1.5 border-b border-neutral-800/50">
-                        <span className="text-neutral-400">Corporate action</span>
-                        <span className="text-neutral-200">{detail.corporate_action ? 'Active' : 'None'}</span>
+                      <div className="flex justify-between py-1">
+                        <span className="text-neutral-500">Corp Action / Catalyst</span>
+                        <span className="text-neutral-300">{Number(detail.corporate_action)} / {Number(!!detail.catalyst)}</span>
                       </div>
-                      <div className="flex justify-between py-1.5">
-                        <span className="text-neutral-400">Catalyst</span>
-                        <span className="text-neutral-200">{detail.catalyst ? 'Found' : 'None'}</span>
-                      </div>
+                    </div>
+                  </div>
+
+                  {/* Chart */}
+                  <div className="pt-2">
+                    <h3 className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-3">Price Action</h3>
+                    <div className="h-48 w-full border border-neutral-800 rounded-xl p-3 bg-black">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={chartData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
+                          <defs>
+                            <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor={detail.raw_delta >= 0 ? "#10b981" : "#ef4444"} stopOpacity={0.2}/>
+                              <stop offset="95%" stopColor={detail.raw_delta >= 0 ? "#10b981" : "#ef4444"} stopOpacity={0}/>
+                            </linearGradient>
+                          </defs>
+                          <Tooltip 
+                            contentStyle={{ backgroundColor: '#0a0a0a', borderColor: '#262626', fontSize: '12px' }}
+                            itemStyle={{ color: '#fff' }}
+                            formatter={(value: any) => [`₹${Number(value).toFixed(2)}`, 'Price']}
+                          />
+                          <ReferenceLine y={detail.baseline_price} stroke="#404040" strokeDasharray="3 3" label={{ position: 'insideTopLeft', value: 'Your last check', fill: '#737373', fontSize: 11 }} />
+                          <Area type="monotone" dataKey="price" stroke={detail.raw_delta >= 0 ? "#10b981" : "#ef4444"} strokeWidth={2} fillOpacity={1} fill="url(#colorPrice)" />
+                        </AreaChart>
+                      </ResponsiveContainer>
                     </div>
                   </div>
 

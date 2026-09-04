@@ -106,17 +106,24 @@ export default function Home() {
         <main className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto relative">
           {/* Header */}
           <header className="sticky top-0 z-30 bg-neutral-950/80 backdrop-blur-md border-b border-neutral-800 px-6 py-4 flex justify-between items-center">
-            <div className="md:hidden flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center font-bold text-black text-sm">C</div>
-              <span className="font-semibold tracking-tight">Context</span>
+            <div className="flex items-center gap-3">
+              <div className="md:hidden flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center font-bold text-black text-sm">C</div>
+                <span className="font-semibold tracking-tight">Context</span>
+              </div>
+              <div className="hidden md:flex items-center gap-2 text-xs font-medium px-3 py-1 bg-neutral-900 rounded-full border border-neutral-800">
+                <div className={`w-1.5 h-1.5 rounded-full ${inbox?.is_stale ? 'bg-orange-500' : 'bg-emerald-500'}`} />
+                <span className="text-neutral-400">Data status:</span>
+                <span className={inbox?.is_stale ? 'text-orange-400' : 'text-emerald-400'}>{inbox?.is_stale ? 'STALE' : 'LIVE'}</span>
+              </div>
             </div>
             
             <div className="ml-auto flex items-center gap-4">
               <button 
                 onClick={() => setShowWatchlistManager(true)}
-                className="md:hidden px-4 py-2 bg-neutral-900 hover:bg-neutral-800 rounded-full text-sm font-medium transition-colors border border-neutral-800"
+                className="hidden md:block px-4 py-1.5 text-sm text-neutral-400 hover:text-white transition-colors"
               >
-                Watchlist
+                Manage Watchlist
               </button>
               
               <button 
@@ -135,21 +142,31 @@ export default function Home() {
             </div>
           )}
 
-          <div className="max-w-4xl mx-auto w-full px-4 sm:px-8 py-8 space-y-10">
+          <div className="max-w-4xl mx-auto w-full px-4 sm:px-8 py-10 space-y-12">
             {/* Summary Header */}
-            <section className="flex flex-col sm:flex-row sm:items-end justify-between border-b border-neutral-800 pb-6 gap-4">
-              <div>
-                <p className="text-neutral-500 font-medium mb-1">Since your last check</p>
-                <div className="flex items-center gap-3">
-                  <h1 className="text-3xl font-semibold tracking-tight">
-                    {inbox?.summary.major_changes! + inbox?.summary.moderate_changes!} updates
-                  </h1>
-                  <span className="px-3 py-1 bg-neutral-900 rounded-md text-sm text-neutral-400 font-mono">
-                    {session?.last_viewed_at ? new Date(session.last_viewed_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '...'}
-                  </span>
-                </div>
+            <section className="border-b border-neutral-800 pb-8 relative">
+              <p className="text-sm font-semibold tracking-wider text-neutral-500 uppercase mb-2">Since you last checked</p>
+              <div className="flex items-center gap-3 text-neutral-400 font-mono text-sm mb-6">
+                <span>{session?.last_viewed_at ? new Date(session.last_viewed_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '...'}</span>
+                <span>→</span>
+                <span>{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
               </div>
-              <button onClick={loadData} className="text-neutral-500 hover:text-white transition-colors p-2" aria-label="Refresh">
+
+              {inbox && (
+                <div className="space-y-4">
+                  <h1 className="text-4xl font-semibold tracking-tight text-white">
+                    {inbox.summary.major_changes + inbox.summary.moderate_changes === 1 
+                      ? '1 thing needs your attention' 
+                      : `${inbox.summary.major_changes + inbox.summary.moderate_changes} things need your attention`}
+                  </h1>
+                  <div className="flex items-center gap-4 text-sm font-medium">
+                    <span className="text-red-400 flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-red-500"/> {inbox.summary.major_changes} major</span>
+                    <span className="text-orange-400 flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-orange-500"/> {inbox.summary.moderate_changes} moderate</span>
+                    <span className="text-neutral-500 flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-neutral-600"/> {inbox.summary.unchanged} unchanged</span>
+                  </div>
+                </div>
+              )}
+              <button onClick={loadData} className="absolute right-0 bottom-8 text-neutral-500 hover:text-white transition-colors p-2" aria-label="Refresh">
                 <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
               </button>
             </section>
@@ -186,15 +203,6 @@ export default function Home() {
           <>
             {/* Attention Section */}
             <section className="space-y-6">
-              <div className="flex justify-between items-end">
-                <h2 className="text-2xl font-medium">
-                  {inbox?.summary.major_changes! + inbox?.summary.moderate_changes!} things need your attention
-                </h2>
-                <button onClick={loadData} className="text-neutral-500 hover:text-white transition-colors" aria-label="Refresh">
-                  <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
-                </button>
-              </div>
-
               <div className="space-y-4">
                 <AnimatePresence>
                   {inbox?.results
@@ -220,15 +228,17 @@ export default function Home() {
               </div>
 
               {/* Unchanged summary */}
-              <div className="pt-6 border-t border-neutral-900 flex justify-between items-center text-neutral-500">
-                <p>{inbox?.summary.unchanged} {inbox?.summary.unchanged === 1 ? 'stock' : 'stocks'} showed no meaningful change.</p>
-                <button 
-                  onClick={() => setShowWatchlistManager(true)}
-                  className="text-sm hover:text-white transition-colors underline underline-offset-4"
-                >
-                  Edit Watchlist
-                </button>
-              </div>
+              {inbox && inbox.summary.unchanged > 0 && (
+                <div className="pt-6 border-t border-neutral-800">
+                  <div className="flex items-center gap-2 text-emerald-400 font-medium mb-1">
+                    <CheckCircle2 className="w-4 h-4" />
+                    Nothing else needs your attention
+                  </div>
+                  <p className="text-sm text-neutral-400">
+                    {inbox.summary.unchanged} of your {session?.watchlist_tickers.length} stocks showed no meaningful change.
+                  </p>
+                </div>
+              )}
             </section>
 
             {/* Market Stories */}

@@ -55,20 +55,24 @@ export const Sidebar = ({
               <button
                 key={item.ticker}
                 onClick={() => onSelect(item.ticker)}
-                className={`w-full flex items-center justify-between p-3 rounded-xl transition-all text-sm ${
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all text-sm group ${
                   isSelected 
-                    ? 'bg-neutral-800/80 text-white' 
-                    : 'text-neutral-400 hover:bg-neutral-900/60 hover:text-neutral-300'
+                    ? 'bg-neutral-800 text-white' 
+                    : 'text-neutral-400 hover:bg-neutral-900 hover:text-neutral-200'
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <div className={`w-1.5 h-1.5 rounded-full ${isMajor ? 'bg-red-500' : isModerate ? 'bg-orange-500' : 'bg-neutral-700'}`} />
-                  <div className="text-left">
-                    <div className={`font-semibold ${isSelected ? 'text-white' : 'text-neutral-300'}`}>{item.ticker}</div>
+                  <div className={`font-medium ${isSelected ? 'text-white' : 'text-neutral-300 group-hover:text-white'}`}>
+                    {item.ticker}
                   </div>
                 </div>
-                <div className="text-right">
-                  <div className={`${isPos ? 'text-emerald-400' : 'text-red-400'}`}>{formatPercent(item.delta_stock)}</div>
+                <div className="flex items-center gap-3">
+                  <div className={`${isPos ? 'text-emerald-400' : 'text-red-400'}`}>
+                    {formatPercent(item.delta_stock)}
+                  </div>
+                  <div className="w-2 flex justify-center">
+                    {isMajor ? '🔴' : isModerate ? '🟠' : '○'}
+                  </div>
                 </div>
               </button>
             );
