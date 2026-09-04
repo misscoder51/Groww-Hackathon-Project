@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { api } from "@/lib/api";
-import { X, Check, Search, Plus, Trash2 } from "lucide-react";
+import { X, Check, Plus } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const AVAILABLE_STOCKS = [
@@ -29,7 +29,6 @@ export const WatchlistManager = ({
   const [error, setError] = useState<string | null>(null);
   const modalRef = useRef<HTMLDivElement>(null);
 
-  // Sync state when opened
   useEffect(() => {
     if (isOpen) {
       setTickers(currentTickers);
@@ -81,7 +80,7 @@ export const WatchlistManager = ({
         <motion.div 
           key="watchlist-backdrop"
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 bg-gray-900/20 dark:bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
           onClick={onClose}
         >
           <motion.div 
@@ -90,17 +89,17 @@ export const WatchlistManager = ({
             role="dialog"
             aria-modal="true"
             aria-labelledby="watchlist-title"
-            initial={{ scale: 0.95, opacity: 0 }} 
-            animate={{ scale: 1, opacity: 1 }} 
-            exit={{ scale: 0.95, opacity: 0 }}
+            initial={{ scale: 0.95, opacity: 0, y: 10 }} 
+            animate={{ scale: 1, opacity: 1, y: 0 }} 
+            exit={{ scale: 0.95, opacity: 0, y: 10 }}
             onClick={e => e.stopPropagation()}
-            className="bg-neutral-900 border border-neutral-800 rounded-3xl p-6 w-full max-w-md shadow-2xl overflow-hidden outline-none"
+            className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-3xl p-6 w-full max-w-md shadow-2xl overflow-hidden outline-none"
           >
             <div className="flex justify-between items-center mb-6">
-                <h2 id="watchlist-title" className="text-2xl font-bold">Manage Watchlist</h2>
+                <h2 id="watchlist-title" className="text-xl font-bold text-gray-900 dark:text-slate-100 tracking-tight">Manage Watchlist</h2>
                 <button 
                   onClick={onClose} 
-                  className="p-2 text-neutral-400 hover:text-white bg-black rounded-full"
+                  className="p-2 text-gray-400 dark:text-slate-500 hover:text-gray-900 dark:hover:text-slate-300 bg-gray-50 dark:bg-slate-800 rounded-full transition-colors"
                   aria-label="Close manage watchlist"
                 >
                   <X className="w-5 h-5" />
@@ -116,15 +115,15 @@ export const WatchlistManager = ({
                       onClick={() => handleToggle(stock.ticker)}
                       className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all ${
                         isSelected 
-                          ? 'bg-emerald-500/10 border-emerald-500/30 text-white' 
-                          : 'bg-black border-neutral-800 text-neutral-400 hover:border-neutral-700 hover:text-neutral-200'
+                          ? 'bg-teal-50 dark:bg-teal-900/20 border-teal-200 dark:border-teal-900/50 text-teal-900 dark:text-teal-100 shadow-sm' 
+                          : 'bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-800 text-gray-500 dark:text-slate-400 hover:border-gray-300 dark:hover:border-slate-700 hover:text-gray-900 dark:hover:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-800'
                       }`}
                     >
                       <div className="text-left">
-                        <div className="font-bold">{stock.ticker}</div>
-                        <div className="text-xs opacity-70">{stock.name}</div>
+                        <div className={`font-bold ${isSelected ? 'text-teal-900 dark:text-teal-100' : 'text-gray-900 dark:text-slate-200'}`}>{stock.ticker}</div>
+                        <div className="text-xs mt-0.5">{stock.name}</div>
                       </div>
-                      {isSelected ? <Check className="w-5 h-5 text-emerald-400" /> : <Plus className="w-5 h-5" />}
+                      {isSelected ? <Check className="w-5 h-5 text-teal-600 dark:text-teal-400" /> : <Plus className="w-5 h-5" />}
                     </button>
                   );
                 })}
@@ -132,14 +131,14 @@ export const WatchlistManager = ({
 
               <div className="mt-8">
                 {error && (
-                  <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 text-red-400 text-sm rounded-lg text-center">
+                  <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 text-red-600 dark:text-red-400 text-sm rounded-lg text-center">
                     {error}
                   </div>
                 )}
                 <button 
                   onClick={handleSave}
                   disabled={saving || tickers.length === 0}
-                  className="w-full py-4 bg-white text-black font-semibold rounded-xl hover:bg-neutral-200 disabled:opacity-50 transition-colors"
+                  className="w-full py-3.5 bg-gray-900 dark:bg-slate-100 text-white dark:text-slate-900 font-semibold rounded-xl hover:bg-gray-800 dark:hover:bg-white disabled:opacity-50 transition-colors shadow-sm"
                 >
                   {saving ? "Saving..." : "Save Watchlist"}
                 </button>

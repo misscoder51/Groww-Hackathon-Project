@@ -68,3 +68,17 @@ export interface MarketStoriesResponse {
   stale: boolean;
 }
 
+
+export interface StockListItem {
+  ticker: string;
+  company: string;
+  current_price: number;
+  sector: string;
+}
+
+export interface StockHistoryResponse {
+  ticker: string;
+  company: string;
+  history: { timestamp: string; price: number }[];
+  context: AttentionScoreResult | null;
+}

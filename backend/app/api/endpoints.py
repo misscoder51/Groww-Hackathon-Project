@@ -1,4 +1,7 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Request
+from fastapi.responses import StreamingResponse
+import asyncio
+import json
 from typing import List, Dict, Any, Optional
 from datetime import datetime, timedelta, timezone
 from app.providers.mock_market_provider import MockMarketProvider
@@ -148,6 +151,20 @@ def update_watchlist(request: WatchlistRequest):
     session_store.create_or_update_session(session)
     return {"status": "success", "watchlist_tickers": session.watchlist_tickers}
 
+@router.get("/stocks")
+def list_stocks():
+    stocks = []
+    for ticker, meta in market_provider.metadata.items():
+        price = market_provider.get_latest_price(ticker)
+        if price:
+            stocks.append({
+                "ticker": ticker,
+                "company": meta.company_name,
+                "current_price": price.close,
+                "sector": meta.sector_id
+            })
+    return stocks
+
 @router.get("/stocks/{ticker}")
 def get_stock(ticker: str):
     session = session_store.get_session(DEFAULT_USER)
@@ -210,3 +227,62 @@ def get_market_stories():
             "affected": ["RELIANCE"]
         })
     return {"stories": stories, "stale": False}
+
+@router.get("/attention-stream")
+async def attention_stream(request: Request):
+    async def event_generator():
+        session = session_store.get_session(DEFAULT_USER)
+        baseline_time = session.last_viewed_at
+        last_emitted_scores = {}
+        
+        while True:
+            if await request.is_disconnected():
+                break
+                
+            current_time = datetime.now(timezone.utc)
+            if circuit_breaker.can_execute():
+                for ticker in session.watchlist_tickers:
+                    try:
+                        res = compute_stock_attention(ticker, baseline_time, current_time)
+                        if res and res.classification != 'unchanged':
+                            # Check if this is a new or significantly changed event
+                            last_score = last_emitted_scores.get(ticker, -1)
+                            if res.score != last_score:
+                                last_emitted_scores[ticker] = res.score
+                                yield f"data: {json.dumps(res.__dict__)}\n\n"
+                        circuit_breaker.record_success()
+                    except Exception as e:
+                        circuit_breaker.record_failure()
+            await asyncio.sleep(2)
+            
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+
+@router.get("/stocks/{ticker}/history")
+def get_stock_history(ticker: str, range: str = "1D"):
+    meta = market_provider.get_stock_metadata(ticker)
+    if not meta:
+        raise HTTPException(status_code=404, detail="Stock not found")
+        
+    end_time = datetime.now(timezone.utc)
+    if range == "1D":
+        start_time = end_time - timedelta(days=1)
+    elif range == "1W":
+        start_time = end_time - timedelta(days=7)
+    elif range == "1M":
+        start_time = end_time - timedelta(days=30)
+    else:
+        start_time = end_time - timedelta(days=1)
+        
+    prices = market_provider.get_historical_prices(ticker, start_time, end_time)
+    
+    session = session_store.get_session(DEFAULT_USER)
+    baseline_time = session.last_viewed_at
+    res = compute_stock_attention(ticker, baseline_time, end_time)
+    
+    return {
+        "ticker": ticker,
+        "company": meta.company_name,
+        "history": [{"timestamp": p.timestamp.isoformat(), "price": p.close} for p in prices],
+        "context": res.__dict__ if res else None
+    }

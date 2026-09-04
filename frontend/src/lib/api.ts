@@ -58,5 +58,21 @@ export const api = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ scenario })
     });
+  },
+
+  getEventSourceURL(): string {
+    return `${API_BASE}/attention-stream`;
+  },
+
+  async listStocks(): Promise<any[]> {
+    const res = await fetch(`${API_BASE}/stocks`, { cache: 'no-store' });
+    if (!res.ok) throw new Error("Failed to fetch stocks");
+    return res.json();
+  },
+
+  async getStockHistory(ticker: string, range: string): Promise<any> {
+    const res = await fetch(`${API_BASE}/stocks/${ticker}/history?range=${range}`, { cache: 'no-store' });
+    if (!res.ok) throw new Error("Failed to fetch stock history");
+    return res.json();
   }
 };
