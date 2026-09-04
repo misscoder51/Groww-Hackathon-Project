@@ -100,6 +100,12 @@ export default function Home() {
           <span className="font-semibold text-lg tracking-tight">Context</span>
         </div>
         <div className="flex items-center gap-4">
+          <button 
+            onClick={() => setShowWatchlistManager(true)}
+            className="px-4 py-2 bg-neutral-900 hover:bg-neutral-800 rounded-full text-sm font-medium transition-colors border border-neutral-800"
+          >
+            Manage Watchlist
+          </button>
           <button onClick={() => setShowDemoControls(!showDemoControls)} className="p-2 text-neutral-400 hover:text-white transition-colors" aria-label="Demo controls">
             <Settings className="w-5 h-5" />
           </button>

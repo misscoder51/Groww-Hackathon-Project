@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useState } from "react";
 import { StockDetailResponse } from "@/types";
 import { api } from "@/lib/api";
@@ -49,16 +51,16 @@ export const StockDetailDrawer = ({ ticker, onClose }: { ticker: string | null, 
   return (
     <AnimatePresence>
       {ticker && (
-        <>
+        <motion.div key="drawer-wrapper" className="fixed inset-0 z-50">
           <motion.div 
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={onClose}
           />
           <motion.div 
             initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed inset-y-0 right-0 w-full sm:w-[500px] bg-neutral-950 border-l border-neutral-800 z-50 overflow-y-auto"
+            className="absolute inset-y-0 right-0 w-full sm:w-[500px] bg-neutral-950 border-l border-neutral-800 overflow-y-auto"
           >
             <div className="p-6">
               <button onClick={onClose} className="p-2 bg-neutral-900 rounded-full text-neutral-400 hover:text-white mb-6">
@@ -162,7 +164,7 @@ export const StockDetailDrawer = ({ ticker, onClose }: { ticker: string | null, 
               )}
             </div>
           </motion.div>
-        </>
+        </motion.div>
       )}
     </AnimatePresence>
   );

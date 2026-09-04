@@ -1,4 +1,6 @@
-import { useState } from "react";
+"use client";
+
+import { useState, useEffect, useRef } from "react";
 import { api } from "@/lib/api";
 import { X, Check, Search, Plus, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -24,8 +26,33 @@ export const WatchlistManager = ({
 }) => {
   const [tickers, setTickers] = useState<string[]>(currentTickers);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  // Sync state when opened
+  useEffect(() => {
+    if (isOpen) {
+      setTickers(currentTickers);
+      setError(null);
+    }
+  }, [isOpen, currentTickers]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isOpen) onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
+  useEffect(() => {
+    if (isOpen && modalRef.current) {
+      modalRef.current.focus();
+    }
+  }, [isOpen]);
 
   const handleToggle = (ticker: string) => {
+    setError(null);
     if (tickers.includes(ticker)) {
       setTickers(tickers.filter(t => t !== ticker));
     } else {
@@ -35,12 +62,14 @@ export const WatchlistManager = ({
 
   const handleSave = async () => {
     setSaving(true);
+    setError(null);
     try {
       await api.updateWatchlist(tickers);
       onSaved();
       onClose();
     } catch (e) {
       console.error(e);
+      setError("Couldn't save your watchlist. Please try again.");
     } finally {
       setSaving(false);
     }
@@ -49,22 +78,31 @@ export const WatchlistManager = ({
   return (
     <AnimatePresence>
       {isOpen && (
-        <>
+        <motion.div 
+          key="watchlist-backdrop"
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={onClose}
+        >
           <motion.div 
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-            onClick={onClose}
+            ref={modalRef}
+            tabIndex={-1}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="watchlist-title"
+            initial={{ scale: 0.95, opacity: 0 }} 
+            animate={{ scale: 1, opacity: 1 }} 
+            exit={{ scale: 0.95, opacity: 0 }}
+            onClick={e => e.stopPropagation()}
+            className="bg-neutral-900 border border-neutral-800 rounded-3xl p-6 w-full max-w-md shadow-2xl overflow-hidden outline-none"
           >
-            <motion.div 
-              initial={{ scale: 0.95, opacity: 0 }} 
-              animate={{ scale: 1, opacity: 1 }} 
-              exit={{ scale: 0.95, opacity: 0 }}
-              onClick={e => e.stopPropagation()}
-              className="bg-neutral-900 border border-neutral-800 rounded-3xl p-6 w-full max-w-md shadow-2xl overflow-hidden"
-            >
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold">Manage Watchlist</h2>
-                <button onClick={onClose} className="p-2 text-neutral-400 hover:text-white bg-black rounded-full">
+            <div className="flex justify-between items-center mb-6">
+                <h2 id="watchlist-title" className="text-2xl font-bold">Manage Watchlist</h2>
+                <button 
+                  onClick={onClose} 
+                  className="p-2 text-neutral-400 hover:text-white bg-black rounded-full"
+                  aria-label="Close manage watchlist"
+                >
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -93,6 +131,11 @@ export const WatchlistManager = ({
               </div>
 
               <div className="mt-8">
+                {error && (
+                  <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 text-red-400 text-sm rounded-lg text-center">
+                    {error}
+                  </div>
+                )}
                 <button 
                   onClick={handleSave}
                   disabled={saving || tickers.length === 0}
@@ -102,8 +145,7 @@ export const WatchlistManager = ({
                 </button>
               </div>
             </motion.div>
-          </motion.div>
-        </>
+        </motion.div>
       )}
     </AnimatePresence>
   );

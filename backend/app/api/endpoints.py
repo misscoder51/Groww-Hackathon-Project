@@ -133,7 +133,18 @@ def update_watchlist(request: WatchlistRequest):
     session = session_store.get_session(DEFAULT_USER)
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
-    session.watchlist_tickers = request.tickers
+        
+    # Validate tickers
+    valid_tickers = []
+    for t in request.tickers:
+        meta = market_provider.get_stock_metadata(t)
+        if not meta:
+            raise HTTPException(status_code=400, detail=f"Invalid or unknown ticker: {t}")
+        if t not in valid_tickers:
+            valid_tickers.append(t)
+            
+    # Do not update last_viewed_at here!
+    session.watchlist_tickers = valid_tickers
     session_store.create_or_update_session(session)
     return {"status": "success", "watchlist_tickers": session.watchlist_tickers}
 
