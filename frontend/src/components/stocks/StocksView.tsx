@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { api } from "@/lib/api";
@@ -47,7 +47,7 @@ export const StocksView = () => {
           <TextReveal3D text="Explore Stocks" />
         </h1>
         <p className="text-gray-500 dark:text-slate-400 mt-2 max-w-xl text-sm sm:text-base">
-          Browse and analyze companies with Context attention intelligence.
+          Browse and analyze companies with NoCap attention intelligence.
         </p>
       </DitherWave>
 

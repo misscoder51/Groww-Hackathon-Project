@@ -1,22 +1,35 @@
 "use client";
 
 import { AttentionScoreResult } from "@/types";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, PanelLeftClose } from "lucide-react";
 
 interface SidebarProps {
   results: AttentionScoreResult[];
   selectedTicker: string | null;
   onSelect: (ticker: string) => void;
   onManage: () => void;
+  onCollapse?: () => void;
 }
 
-export const Sidebar = ({ results, selectedTicker, onSelect, onManage }: SidebarProps) => {
+export const Sidebar = ({ results, selectedTicker, onSelect, onManage, onCollapse }: SidebarProps) => {
   const formatPercent = (val: number) => (val >= 0 ? "+" : "") + (val * 100).toFixed(1) + "%";
 
   return (
-    <aside className="hidden md:flex flex-col w-72 h-screen bg-gray-50 dark:bg-slate-950 border-r border-gray-200 dark:border-slate-800">
-      <div className="p-6 pb-2">
-        <h2 className="text-xs font-bold tracking-wider text-gray-500 dark:text-slate-500 uppercase mb-4">Watchlist</h2>
+    <aside className="hidden md:flex flex-col w-72 h-screen bg-gray-50 dark:bg-slate-950 border-r border-gray-200 dark:border-slate-800 shrink-0">
+      <div className="p-5 pb-2">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-xs font-bold tracking-wider text-gray-500 dark:text-slate-400 uppercase">Watchlist</h2>
+          {onCollapse && (
+            <button
+              onClick={onCollapse}
+              className="p-1 rounded-md text-gray-400 hover:text-gray-700 dark:hover:text-slate-200 hover:bg-gray-200/70 dark:hover:bg-slate-800 transition-colors"
+              title="Collapse sidebar"
+              aria-label="Collapse sidebar"
+            >
+              <PanelLeftClose className="w-4 h-4" />
+            </button>
+          )}
+        </div>
         
         <div className="relative mb-6">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500" />

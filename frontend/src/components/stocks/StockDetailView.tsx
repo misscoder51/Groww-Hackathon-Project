@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { api } from "@/lib/api";
 import { StockHistoryResponse } from "@/types";
 import { ChevronLeft, Calculator, Activity, Info } from "lucide-react";
@@ -322,7 +322,7 @@ export const StockDetailView = ({
       {data.context && data.context.classification !== "unchanged" && (
         <div className="bg-gray-50 dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700/50 p-6 rounded-xl shadow-sm">
           <h3 className="text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-1.5">
-            <Activity className="w-4 h-4" /> Context Insight
+            <Activity className="w-4 h-4" /> NoCap Insight
           </h3>
           <p className="text-gray-900 dark:text-slate-100 font-medium mb-4">
             {data.company} is{" "}

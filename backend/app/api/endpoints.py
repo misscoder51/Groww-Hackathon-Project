@@ -235,25 +235,28 @@ async def attention_stream(request: Request):
         baseline_time = session.last_viewed_at
         last_emitted_scores = {}
         
-        while True:
-            if await request.is_disconnected():
-                break
-                
-            current_time = datetime.now(timezone.utc)
-            if circuit_breaker.can_execute():
-                for ticker in session.watchlist_tickers:
-                    try:
-                        res = compute_stock_attention(ticker, baseline_time, current_time)
-                        if res and res.classification != 'unchanged':
-                            # Check if this is a new or significantly changed event
-                            last_score = last_emitted_scores.get(ticker, -1)
-                            if res.score != last_score:
-                                last_emitted_scores[ticker] = res.score
-                                yield f"data: {json.dumps(res.__dict__)}\n\n"
-                        circuit_breaker.record_success()
-                    except Exception as e:
-                        circuit_breaker.record_failure()
-            await asyncio.sleep(2)
+        try:
+            while True:
+                current_time = datetime.now(timezone.utc)
+                if circuit_breaker.can_execute():
+                    for ticker in session.watchlist_tickers:
+                        try:
+                            res = compute_stock_attention(ticker, baseline_time, current_time)
+                            if res and res.classification != 'unchanged':
+                                # Check if this is a new or significantly changed event
+                                last_score = last_emitted_scores.get(ticker, -1)
+                                if res.score != last_score:
+                                    last_emitted_scores[ticker] = res.score
+                                    d = dict(res.__dict__)
+                                    if d.get("catalyst") and hasattr(d["catalyst"], "__dict__"):
+                                        d["catalyst"] = d["catalyst"].__dict__
+                                    yield f"data: {json.dumps(d, default=str)}\n\n"
+                            circuit_breaker.record_success()
+                        except Exception as e:
+                            circuit_breaker.record_failure()
+                await asyncio.sleep(2)
+        except asyncio.CancelledError:
+            pass
             
     return StreamingResponse(event_generator(), media_type="text/event-stream")
 

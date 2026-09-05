@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { api } from "@/lib/api";
 import { AttentionInboxResponse, MarketStoriesResponse, UserSession, AttentionScoreResult } from "@/types";
-import { AlertCircle, CheckCircle2, RefreshCw, Activity, ChevronRight } from "lucide-react";
+import { AlertCircle, CheckCircle2, RefreshCw, Activity, ChevronRight, PanelLeft } from "lucide-react";
 import { AttentionCard } from "@/components/watchlist/AttentionCard";
 import { StockDetailDrawer } from "@/components/watchlist/StockDetailDrawer";
 import { MarketStories } from "@/components/watchlist/MarketStories";
@@ -16,6 +16,28 @@ import { StocksView } from "@/components/stocks/StocksView";
 
 export default function Home() {
   const [currentView, setCurrentView] = useState<'watchlist' | 'stocks'>('watchlist');
+  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
+
+  useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem('nocap_sidebar_open');
+      if (saved !== null) {
+        setIsSidebarOpen(saved === 'true');
+      }
+    } catch {
+      // sessionStorage unavailable
+    }
+  }, []);
+
+  const toggleSidebar = (open: boolean) => {
+    setIsSidebarOpen(open);
+    try {
+      sessionStorage.setItem('nocap_sidebar_open', String(open));
+    } catch {
+      // ignore
+    }
+  };
+
   const [session, setSession] = useState<UserSession | null>(null);
   const [inbox, setInbox] = useState<AttentionInboxResponse | null>(null);
   const [stories, setStories] = useState<MarketStoriesResponse | null>(null);
@@ -152,37 +174,50 @@ export default function Home() {
 
   return (
     <main className="flex h-screen overflow-hidden bg-gray-50 dark:bg-slate-950">
-      {currentView === 'watchlist' && (
+      {currentView === 'watchlist' && isSidebarOpen && (
         <Sidebar 
           results={inbox?.results || []} 
           selectedTicker={selectedTicker}
           onSelect={setSelectedTicker}
           onManage={() => setShowWatchlistManager(true)}
+          onCollapse={() => toggleSidebar(false)}
         />
       )}
 
       <div className="flex-1 flex flex-col overflow-y-auto relative scrollbar-hide">
-        <main className="flex-1 min-h-full bg-white dark:bg-slate-900 shadow-[0_0_40px_rgba(0,0,0,0.02)] dark:shadow-[0_0_40px_rgba(0,0,0,0.2)] sm:rounded-tl-[2.5rem] border-l border-gray-100 dark:border-slate-800">
+        <main className="flex-1 min-h-full bg-white dark:bg-slate-900 border-l border-gray-200 dark:border-slate-800">
           {/* Top Navigation */}
-          <header className="px-6 py-4 flex items-center justify-between sticky top-0 z-30 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-gray-100 dark:border-slate-800">
-            <div className="flex items-center gap-6">
+          <header className="px-4 sm:px-6 py-3.5 flex items-center justify-between sticky top-0 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-gray-200 dark:border-slate-800">
+            <div className="flex items-center gap-3 sm:gap-5">
+              {currentView === 'watchlist' && !isSidebarOpen && (
+                <button
+                  onClick={() => toggleSidebar(true)}
+                  className="p-1.5 rounded-lg border border-gray-200 dark:border-slate-800 hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-200 transition-colors flex items-center gap-1.5 text-xs font-medium"
+                  title="Open watchlist sidebar"
+                  aria-label="Open watchlist sidebar"
+                >
+                  <PanelLeft className="w-4 h-4" />
+                  <span className="hidden sm:inline">Watchlist</span>
+                </button>
+              )}
+
               <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-gray-900 dark:bg-slate-100 flex items-center justify-center font-bold text-white dark:text-slate-900 text-xs">
-                  C
+                <div className="w-6 h-6 rounded-md bg-gray-900 dark:bg-slate-100 flex items-center justify-center font-bold text-white dark:text-slate-900 text-xs tracking-wider">
+                  NC
                 </div>
-                <span className="font-bold text-gray-900 dark:text-slate-100 hidden md:block">Context</span>
+                <span className="font-bold text-gray-900 dark:text-slate-100 tracking-tight">NoCap</span>
               </div>
               
-              <nav className="flex items-center gap-1 bg-gray-100/50 dark:bg-slate-800/50 p-1 rounded-xl">
+              <nav className="flex items-center gap-1 bg-gray-100 dark:bg-slate-800/60 p-1 rounded-lg">
                 <button 
                   onClick={() => setCurrentView('stocks')} 
-                  className={`px-4 py-1.5 text-sm font-semibold rounded-lg transition-all ${currentView === 'stocks' ? "bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 shadow-sm" : "text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-100"}`}
+                  className={`px-3 sm:px-4 py-1.5 text-xs sm:text-sm font-semibold rounded-md transition-all ${currentView === 'stocks' ? "bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 shadow-sm" : "text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-100"}`}
                 >
                   Stocks
                 </button>
                 <button 
                   onClick={() => setCurrentView('watchlist')} 
-                  className={`px-4 py-1.5 text-sm font-semibold rounded-lg transition-all ${currentView === 'watchlist' ? "bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 shadow-sm" : "text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-100"}`}
+                  className={`px-3 sm:px-4 py-1.5 text-xs sm:text-sm font-semibold rounded-md transition-all ${currentView === 'watchlist' ? "bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 shadow-sm" : "text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-100"}`}
                 >
                   My Watchlist
                 </button>
@@ -224,32 +259,32 @@ export default function Home() {
             {currentView === 'stocks' ? (
               <StocksView />
             ) : (
-              <div className="max-w-4xl mx-auto w-full px-4 sm:px-8 py-10 space-y-12">
+              <div className="max-w-4xl mx-auto w-full px-4 sm:px-8 py-8 space-y-8">
             {/* Summary Header */}
-            <section className="border-b border-gray-100 dark:border-slate-800 pb-8 relative">
-              <p className="text-sm font-semibold tracking-wider text-gray-500 dark:text-slate-400 uppercase mb-2">Since you last checked</p>
-              <div className="flex items-center gap-3 text-gray-500 dark:text-slate-400 font-medium text-sm mb-6 bg-gray-50 dark:bg-slate-800/50 w-fit px-3 py-1.5 rounded-md border border-gray-200 dark:border-slate-700/50">
+            <section className="border-b border-gray-200 dark:border-slate-800 pb-6 relative">
+              <p className="text-xs font-semibold tracking-wider text-gray-400 dark:text-slate-500 uppercase mb-1.5">Since you last checked</p>
+              <div className="flex items-center gap-2.5 text-gray-600 dark:text-slate-400 font-medium text-xs mb-4 bg-gray-50 dark:bg-slate-800/60 w-fit px-2.5 py-1 rounded-md border border-gray-200 dark:border-slate-700/60">
                 <span>{session?.last_viewed_at ? new Date(session.last_viewed_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '...'}</span>
                 <span>→</span>
                 <span>{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
               </div>
 
               {inbox && (
-                <div className="space-y-4">
-                  <h1 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-slate-100">
+                <div className="space-y-3">
+                  <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900 dark:text-slate-100">
                     {inbox.summary.major_changes + inbox.summary.moderate_changes === 1 
-                      ? '1 thing needs your attention' 
-                      : `${inbox.summary.major_changes + inbox.summary.moderate_changes} things need your attention`}
+                      ? '1 item needs attention' 
+                      : `${inbox.summary.major_changes + inbox.summary.moderate_changes} items need attention`}
                   </h1>
-                  <div className="flex items-center gap-4 text-sm font-medium text-gray-600 dark:text-slate-400">
+                  <div className="flex items-center gap-4 text-xs sm:text-sm font-medium text-gray-600 dark:text-slate-400">
                     <span className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-red-500"/> {inbox.summary.major_changes} major</span>
                     <span className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-amber-500"/> {inbox.summary.moderate_changes} moderate</span>
                     <span className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full border border-gray-300 dark:border-slate-600"/> {inbox.summary.unchanged} unchanged</span>
                   </div>
                 </div>
               )}
-              <button onClick={loadData} className="absolute right-0 bottom-8 text-gray-400 dark:text-slate-500 hover:text-teal-600 dark:hover:text-teal-400 transition-colors p-2" aria-label="Refresh">
-                <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+              <button onClick={loadData} className="absolute right-0 bottom-6 text-gray-400 dark:text-slate-500 hover:text-teal-600 dark:hover:text-teal-400 transition-colors p-1.5" aria-label="Refresh">
+                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
               </button>
             </section>
 
@@ -259,12 +294,12 @@ export default function Home() {
                 <motion.div 
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-900/30 p-4 rounded-xl text-amber-800 dark:text-amber-500 flex items-start gap-3 shadow-sm"
+                  className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-900/30 p-3.5 rounded-lg text-amber-800 dark:text-amber-500 flex items-start gap-3 shadow-sm"
                 >
-                  <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 text-amber-600 dark:text-amber-500" />
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-amber-600 dark:text-amber-500" />
                   <div>
-                    <p className="font-semibold">Market data may be stale.</p>
-                    <p className="text-sm opacity-90 mt-1">{inbox.message}</p>
+                    <p className="font-semibold text-sm">Market data may be stale.</p>
+                    <p className="text-xs opacity-90 mt-0.5">{inbox.message}</p>
                   </div>
                 </motion.div>
               )}
@@ -272,11 +307,11 @@ export default function Home() {
 
         {/* Watchlist empty state */}
         {session?.watchlist_tickers.length === 0 ? (
-          <div className="text-center py-20 border border-dashed border-gray-300 dark:border-slate-700 rounded-2xl bg-gray-50 dark:bg-slate-800/30">
-            <p className="text-gray-500 dark:text-slate-400 font-medium mb-6">Add stocks to start building your market inbox.</p>
+          <div className="text-center py-14 border border-dashed border-gray-200 dark:border-slate-800 rounded-xl bg-gray-50/50 dark:bg-slate-800/20">
+            <p className="text-gray-500 dark:text-slate-400 text-sm font-medium mb-4">Add stocks to start building your watchlist.</p>
             <button 
               onClick={() => setShowWatchlistManager(true)}
-              className="px-6 py-3 bg-teal-600 dark:bg-teal-500 text-white font-medium rounded-full hover:bg-teal-700 dark:hover:bg-teal-600 transition-colors shadow-sm"
+              className="px-5 py-2.5 bg-teal-600 dark:bg-teal-500 text-white font-medium text-sm rounded-lg hover:bg-teal-700 dark:hover:bg-teal-600 transition-colors shadow-sm"
             >
               Manage Watchlist
             </button>
@@ -284,8 +319,8 @@ export default function Home() {
         ) : (
           <>
             {/* Attention Section */}
-            <section className="space-y-6">
-              <div className="space-y-4">
+            <section className="space-y-4">
+              <div className="space-y-3">
                 <AnimatePresence>
                   {inbox?.results
                     .filter(r => r.classification !== 'unchanged')
@@ -303,20 +338,20 @@ export default function Home() {
                 </AnimatePresence>
 
                 {inbox?.summary.major_changes === 0 && inbox?.summary.moderate_changes === 0 && (
-                  <div className="p-8 text-center rounded-2xl bg-gray-50 dark:bg-slate-800/30 border border-gray-200 dark:border-slate-800">
-                    <p className="text-gray-500 dark:text-slate-400 font-medium">Nothing important changed since your last check.</p>
+                  <div className="p-6 text-center rounded-xl bg-gray-50 dark:bg-slate-800/30 border border-gray-200 dark:border-slate-800">
+                    <p className="text-gray-500 dark:text-slate-400 text-sm font-medium">Nothing important changed since your last check.</p>
                   </div>
                 )}
               </div>
 
               {/* Unchanged summary */}
               {inbox && inbox.summary.unchanged > 0 && (
-                <div className="pt-8 pb-4">
-                  <div className="flex items-center gap-2 text-teal-600 dark:text-teal-500 font-semibold mb-1">
-                    <CheckCircle2 className="w-5 h-5" />
+                <div className="pt-4 pb-2">
+                  <div className="flex items-center gap-2 text-teal-600 dark:text-teal-500 font-medium text-sm mb-1">
+                    <CheckCircle2 className="w-4 h-4" />
                     Nothing else needs your attention
                   </div>
-                  <p className="text-gray-500 dark:text-slate-400 font-medium pl-7">
+                  <p className="text-gray-500 dark:text-slate-400 text-xs pl-6">
                     {inbox.summary.unchanged} of your {session?.watchlist_tickers.length} stocks showed no meaningful change.
                   </p>
                 </div>
@@ -325,19 +360,19 @@ export default function Home() {
 
             {/* Market Stories */}
             {stories?.stories && stories.stories.length > 0 && (
-              <section className="pt-10 space-y-6 border-t border-gray-100 dark:border-slate-800">
-                <h2 className="text-xl font-bold text-gray-900 dark:text-slate-100 tracking-tight">Market Stories</h2>
+              <section className="pt-6 space-y-4 border-t border-gray-200 dark:border-slate-800">
+                <h2 className="text-base sm:text-lg font-bold text-gray-900 dark:text-slate-100 tracking-tight">Market Stories</h2>
                 <MarketStories stories={stories.stories} />
               </section>
             )}
 
             {/* Acknowledge Button */}
-            <section className="pt-12 pb-24 flex justify-center">
+            <section className="pt-8 pb-16 flex justify-center">
               <button 
                 onClick={handleAcknowledge}
-                className="group flex items-center gap-3 px-8 py-4 bg-gray-900 dark:bg-slate-800 hover:bg-gray-800 dark:hover:bg-slate-700 text-white rounded-full transition-all duration-300 font-semibold shadow-md hover:shadow-lg"
+                className="group flex items-center gap-2 px-6 py-2.5 bg-gray-900 dark:bg-slate-800 hover:bg-gray-800 dark:hover:bg-slate-700 text-white rounded-lg transition-colors font-medium text-sm shadow-sm"
               >
-                <CheckCircle2 className="w-5 h-5 group-hover:text-teal-400 dark:group-hover:text-teal-400 transition-colors" />
+                <CheckCircle2 className="w-4 h-4 text-gray-400 group-hover:text-teal-400 dark:group-hover:text-teal-400 transition-colors" />
                 Mark as reviewed
               </button>
             </section>

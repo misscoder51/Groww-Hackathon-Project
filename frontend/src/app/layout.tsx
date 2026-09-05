@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Context - Smart Market Watchlist",
+  title: "NoCap - Smart Market Watchlist",
   description: "An attention layer for the market",
 };
 
