@@ -4,12 +4,14 @@ import json
 from typing import List, Optional
 from app.schemas.domain import UserSession
 
+from pathlib import Path
 class SessionStore:
     def __init__(self, db_path="data/market.db"):
         self.db_path = db_path
         self._init_db()
 
     def _init_db(self):
+        Path(self.db_path).parent.mkdir(parents=True, exist_ok=True)
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
             cursor.execute("""
