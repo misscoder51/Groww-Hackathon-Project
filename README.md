@@ -143,8 +143,8 @@ This confirms that the system intentionally filtered out the noise.
               └───────────────────────┼───────────────────────┘
                                       ▼
                          ┌─────────────────────────┐
-                         │ Circuit Breaker +      │
-                         │ Stale Data Fallback    │
+                         │ Circuit Breaker +       │
+                         │ Stale Data Fallback     │
                          └─────────────────────────┘
 ```
 
